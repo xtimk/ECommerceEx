@@ -12,6 +12,7 @@ export default function Catalog() {
     .then(response => response.json())
     .then(data => setProducts(data))
   }, [])
+  
   return (
     <Fragment>
       <ProductList products={products} />
