@@ -34,7 +34,11 @@ namespace API.Controllers
         [HttpGet("{id}")]
         public ActionResult<Product> GetProduct(int id)
         {
-            return _context.Products.Find(id);
+            var product = _context.Products.Find(id);
+
+            if(product == null) return NotFound();
+
+            return product;
         }
     }
 }
