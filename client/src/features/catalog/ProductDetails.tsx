@@ -1,10 +1,13 @@
-import { Divider, Grid, Table, TableBody, TableCell, TableContainer, TableRow, Typography } from "@mui/material";
+import { Button, Divider, Grid, Table, TableBody, TableCell, TableContainer, TableRow, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import agent from "../../app/api/agent";
+import NotFound from "../../app/errors/NotFound";
+import LoadingComponent from "../../app/layout/LoadingComponent";
 import { Product } from "../../app/models/product";
 
 export default function ProductDetails() {
+    // debugger;
     const {id} = useParams<{id: string}>();
 
     // this may be a Product or a null. I inizialize it as null
@@ -18,9 +21,9 @@ export default function ProductDetails() {
             .finally(() => setLoading(false))
     }, [id])
 
-    if (loading) return <h3>Loading...</h3>
+    if (loading) return <LoadingComponent message='Loading product details...' />
 
-    if (!product) return <h3>Product not found</h3>
+    if (!product) return <NotFound />
 
     return (
         <Typography variant='h2'>
@@ -63,9 +66,10 @@ export default function ProductDetails() {
                             </TableBody>
                         </Table>
                     </TableContainer>
-
+                    <Button component={Link} to ='/catalog' >Go back to store</Button>
                 </Grid>
             </Grid>
+            
         </Typography>
     )
 }

@@ -1,11 +1,15 @@
 import axios, { AxiosError, AxiosResponse } from "axios";
 import { toast } from "react-toastify";
+import { history } from "../..";
+
+const sleep = () => new Promise(resolve => setTimeout(resolve, 500));
 
 axios.defaults.baseURL = 'http://localhost:5000/api/';
 
 const responseBody = (response: AxiosResponse) => response.data;
 
-axios.interceptors.response.use(response => {
+axios.interceptors.response.use(async response => {
+    await sleep();
     return response
 }, (error: AxiosError) => {
     const {data, status} = error.response!; // ! override type safety
@@ -25,8 +29,17 @@ axios.interceptors.response.use(response => {
         case 401:
             toast.error(data.title);
             break;
+        case 404:
+            history.push({
+                pathname: '/not-found',
+            });
+            break;
         case 500:
-            toast.error(data.title);
+            history.push({
+                pathname: '/server-error',
+                state: {error: data}
+            });
+            // toast.error(data.title);
             break;                        
         default:
             break;
