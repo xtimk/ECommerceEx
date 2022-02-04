@@ -58,13 +58,14 @@ namespace API.Controllers
         [HttpDelete]
         public async Task<ActionResult> RemoveBasketItem(int productId, int quantity)
         {
+            System.Console.WriteLine("deleting..");
             // get basket
             var basket = await RetrieveBasket();
             
             if (basket == null) return NotFound();
 
-            var quantityInBasket = basket.Items.Find(item => item.ProductId == productId).Quantity;
-            if (quantity > quantityInBasket) return BadRequest(new ProblemDetails{Title = "Can't delete more quantity than the one present in the basket"});
+            // var quantityInBasket = basket.Items.Find(item => item.ProductId == productId).Quantity;
+            // if (quantity > quantityInBasket) return BadRequest(new ProblemDetails{Title = "Can't delete more quantity than the one present in the basket"});
 
             // remove item or reduce quantity
             basket.RemoveItem(productId, quantity);
