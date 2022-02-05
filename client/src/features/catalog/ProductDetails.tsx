@@ -2,36 +2,27 @@ import { LoadingButton } from "@mui/lab";
 import { Button, Divider, Grid, Table, TableBody, TableCell, TableContainer, TableRow, TextField, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import agent from "../../app/api/agent";
 import NotFound from "../../app/errors/NotFound";
 import LoadingComponent from "../../app/layout/LoadingComponent";
-import { Product } from "../../app/models/product";
 import { useAppDispatch, useAppSelector } from "../../app/store/configureStore";
-import { addBasketItemAsync, removeBasketItemAsync, setBasket } from "../basket/basketSlice";
+import { addBasketItemAsync, removeBasketItemAsync } from "../basket/basketSlice";
+import { fetchProductAsync, productSelectors } from "./catalogSlice";
 
 export default function ProductDetails() {
-    // debugger;
-    // const {basket, setBasket, removeItem} = useStoreContext();
     const {basket, status} = useAppSelector(state => state.basket);
     const dispatch = useAppDispatch();
 
     const {id} = useParams<{id: string}>();
-
-    // this may be a Product or a null. I inizialize it as null
-    const [product, setProduct] = useState<Product | null>(null);
-    const [loading, setLoading] = useState(true);
-
+    const product = useAppSelector(state => productSelectors.selectById(state, id));
+    const {status: productStatus} = useAppSelector(state => state.catalog)
     const [quantity, setQuantity] = useState(0); // store the quantity in stock in a local state
 
     const item = basket?.items.find(i => i.productId === product?.id);
 
     useEffect(() => {
         if(item) setQuantity(item.quantity);
-        agent.Catalog.details(parseInt(id))
-            .then(response => setProduct(response))
-            .catch(error => console.log(error))
-            .finally(() => setLoading(false))
-    }, [id, item])
+        if(!product) dispatch(fetchProductAsync(parseInt(id))) // only call api once, if i dont have product into redux state
+    }, [id, item, dispatch, product])
 
     function handleTextQuantityChange(event: any) {
         if(event.target.value >= 0)
@@ -50,7 +41,7 @@ export default function ProductDetails() {
     }
 
 
-    if (loading) return <LoadingComponent message='Loading product details...' />
+    if (productStatus.includes('pending')) return <LoadingComponent message='Loading product details...' />
 
     if (!product) return <NotFound />
 
@@ -116,7 +107,7 @@ export default function ProductDetails() {
                                 variant='contained'
                                 fullWidth
                                 onClick={handleUpdateCart}
-                                loading={status.includes('pendingRemoveItem' + item?.productId)}
+                                loading={status.includes('pending')}
                             >
                                 {item ? 'Update Quantity' : 'Add to Cart'}
                             </LoadingButton>

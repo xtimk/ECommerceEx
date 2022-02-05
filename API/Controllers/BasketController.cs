@@ -39,7 +39,7 @@ namespace API.Controllers
 
             // find product, return 404 if product does not exist
             var product = await _context.Products.FindAsync(productId);
-            if (product == null) return NotFound();
+            if (product == null) return BadRequest(new ProblemDetails{Title = "Product not found"});
 
             // add item
             basket.AddItem(product, quantity);
