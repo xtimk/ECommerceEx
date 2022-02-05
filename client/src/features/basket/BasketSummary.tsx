@@ -33,7 +33,7 @@ export default function BasketSummary() {
               <TableCell align="right">${ccyFormat(subTotal)}</TableCell>
             </TableRow>
             <TableRow>
-              <TableCell colSpan={1}>Delivery fee*</TableCell>
+              <TableCell colSpan={1}>Delivery fee <br /><i>(free with orders over $100)</i></TableCell>
               <TableCell align="right">${ccyFormat(deliveryFee)}</TableCell>
             </TableRow>
             <TableRow>

@@ -1,25 +1,58 @@
-import { Button, Divider, Grid, Table, TableBody, TableCell, TableContainer, TableRow, Typography } from "@mui/material";
+import { LoadingButton } from "@mui/lab";
+import { Button, Divider, Grid, Table, TableBody, TableCell, TableContainer, TableRow, TextField, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import agent from "../../app/api/agent";
+import { useStoreContext } from "../../app/context/StoreContext";
 import NotFound from "../../app/errors/NotFound";
 import LoadingComponent from "../../app/layout/LoadingComponent";
 import { Product } from "../../app/models/product";
 
 export default function ProductDetails() {
     // debugger;
+    const {basket, setBasket, removeItem} = useStoreContext();
     const {id} = useParams<{id: string}>();
 
     // this may be a Product or a null. I inizialize it as null
     const [product, setProduct] = useState<Product | null>(null);
     const [loading, setLoading] = useState(true);
 
+    const [quantity, setQuantity] = useState(0); // store the quantity in stock in a local state
+    const [submitting, setSubmitting] = useState(false) // loading indicator for updating quantity
+
+    const item = basket?.items.find(i => i.productId === product?.id);
+
     useEffect(() => {
+        if(item) setQuantity(item.quantity);
         agent.Catalog.details(parseInt(id))
             .then(response => setProduct(response))
             .catch(error => console.log(error))
             .finally(() => setLoading(false))
-    }, [id])
+    }, [id, item])
+
+    function handleTextQuantityChange(event: any) {
+        if(event.target.value >= 0)
+            setQuantity(parseInt(event.target.value));
+    }
+
+    function handleUpdateCart() {
+        setSubmitting(true);
+        if(!item || quantity > item.quantity) {
+            const updatedQuantity = item ? quantity - item.quantity : quantity
+            agent.Basket.addItem(product?.id!, updatedQuantity)
+                .then(basket => setBasket(basket))
+                .catch(err => console.log(err))
+                .finally(() => setSubmitting(false))
+        }
+        else {
+            const updatedQuantity = item ? item.quantity - quantity : quantity
+            agent.Basket.removeItem(product?.id!, updatedQuantity)
+                .then(() => removeItem(product?.id!, updatedQuantity))
+                .catch(err => console.log(err))
+                .finally(() => setSubmitting(false))
+        }
+    }
+
 
     if (loading) return <LoadingComponent message='Loading product details...' />
 
@@ -66,6 +99,33 @@ export default function ProductDetails() {
                             </TableBody>
                         </Table>
                     </TableContainer>
+                    <Grid container spacing={2}>
+                        <Grid item xs={6}>
+                            <TextField 
+                                onChange={handleTextQuantityChange}
+                                variant='outlined'
+                                type='number'
+                                label='Quantity in Cart'
+                                fullWidth
+                                value={quantity}
+                                sx={{marginTop: '13px'}}
+                            />
+                        </Grid>
+                        <Grid item xs={6}>
+                            <LoadingButton
+                                disabled={item?.quantity === quantity || !item && quantity === 0}
+                                sx={{height: '55px'}}
+                                color='primary'
+                                size='large'
+                                variant='contained'
+                                fullWidth
+                                onClick={handleUpdateCart}
+                                loading={submitting}
+                            >
+                                {item ? 'Update Quantity' : 'Add to Cart'}
+                            </LoadingButton>
+                        </Grid>
+                    </Grid>
                     <Button component={Link} to ='/catalog' >Go back to store</Button>
                 </Grid>
             </Grid>
