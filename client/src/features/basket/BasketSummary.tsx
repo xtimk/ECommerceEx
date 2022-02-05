@@ -1,6 +1,5 @@
 import { TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Paper } from "@mui/material";
-import { useStoreContext } from "../../app/context/StoreContext";
-import { BasketItem } from "../../app/models/basket";
+import { useAppSelector } from "../../app/store/configureStore";
 
 function ccyFormat(num) {
     return `${(num / 100).toFixed(2)}`;
@@ -8,7 +7,7 @@ function ccyFormat(num) {
 
 
 export default function BasketSummary() {
-    const {basket} = useStoreContext();
+    const {basket} = useAppSelector(state => state.basket);
 
     const subTotal = basket?.items.reduce((sum, item) => sum + (item.price * item.quantity), 0) ?? 0; // ?? if the basket is undef return 0
 
