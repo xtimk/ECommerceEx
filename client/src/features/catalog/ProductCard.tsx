@@ -59,7 +59,7 @@ export default function ProductCard({product}: Props) {
             productId: product.id,
             quantity: 1
           }))}
-          loading={status.includes('pendingAddItem' + product.id)}
+          loading={status == 'pendingAddItem' + product.id}
           variant="outlined" >
             Add to cart
       </LoadingButton>
