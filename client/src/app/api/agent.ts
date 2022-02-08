@@ -1,6 +1,7 @@
 import axios, { AxiosError, AxiosResponse } from "axios";
 import { toast } from "react-toastify";
 import { history } from "../..";
+import { fetchFilters } from "../../features/catalog/catalogSlice";
 
 const sleep = () => new Promise(resolve => setTimeout(resolve, 500));
 
@@ -49,15 +50,16 @@ axios.interceptors.response.use(async response => {
 })
 
 const requests = {
-    get: (url: string) => axios.get(url).then(responseBody),
+    get: (url: string, params?: URLSearchParams) => axios.get(url, {params: params}).then(responseBody),
     post: (url: string, body: {}) => axios.post(url, body).then(responseBody),
     put: (url: string, body: {}) => axios.put(url, body).then(responseBody),
     delete: (url: string) => axios.delete(url).then(responseBody),
 }
 
 const Catalog = {
-    list: () => requests.get('products'),
-    details: (id: number) => requests.get(`products/${id}`)
+    list: (params: URLSearchParams) => requests.get('products', params),
+    details: (id: number) => requests.get(`products/${id}`),
+    fetchFilters: () => requests.get('products/filters'),
 }
 
 const TestErrors = {

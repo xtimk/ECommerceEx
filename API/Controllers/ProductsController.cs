@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using API.Data;
 using API.Entities;
 using API.Extensions;
+using API.RequestHelpers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -24,17 +26,19 @@ namespace API.Controllers
 
         // better to make the request async, to make this more scalable.
         [HttpGet]
-        public async Task<ActionResult<List<Product>>> GetProducts(
-            string orderBy,
-            string searchTerm
-        )
+        public async Task<ActionResult<PagedList<Product>>> GetProducts([FromQuery]ProductParams productParams)
         {
             var query = _context.Products
-                .Sort(orderBy)
-                .Search(searchTerm)
+                .Sort(productParams.OrderBy)
+                .Search(productParams.SearchTerm)
+                .Filter(productParams.Brands, productParams.Types)
                 .AsQueryable();
 
-            return await query.ToListAsync();
+            var products = await PagedList<Product>.ToPagedList(query, productParams.PageNumber, productParams.PageSize);
+
+            Response.AddPaginationHeader(products.MetaData);
+
+            return products;
         }
 
         // this needs an id as a parameter
@@ -47,6 +51,15 @@ namespace API.Controllers
             if(product == null) return NotFound();
 
             return product;
+        }
+
+        [HttpGet("filters")]
+        public async Task<IActionResult> GetFilters()
+        {
+            var brands = await _context.Products.Select(p => p.Brand).Distinct().ToListAsync();
+            var types = await _context.Products.Select(p => p.Type).Distinct().ToListAsync();
+
+            return Ok(new {brands, types});
         }
     }
 }
