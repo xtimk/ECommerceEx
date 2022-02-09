@@ -2,6 +2,7 @@ import axios, { AxiosError, AxiosResponse } from "axios";
 import { toast } from "react-toastify";
 import { history } from "../..";
 import { fetchFilters } from "../../features/catalog/catalogSlice";
+import { PaginatedResponse } from "../models/pagination";
 
 const sleep = () => new Promise(resolve => setTimeout(resolve, 500));
 
@@ -12,6 +13,15 @@ const responseBody = (response: AxiosResponse) => response.data;
 
 axios.interceptors.response.use(async response => {
     await sleep();
+
+    const pagination = response.headers['pagination'] // access pagination header. Use only lowercase: axios dont work with capital letters.
+
+    if(pagination) {
+        response.data = new PaginatedResponse(response.data, JSON.parse(pagination))
+        // console.log(response);
+        return response;
+    }
+
     return response
 }, (error: AxiosError) => {
     const {data, status} = error.response!; // ! override type safety
