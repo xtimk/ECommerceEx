@@ -19,6 +19,9 @@ import LoadingComponent from "./LoadingComponent";
 import CheckoutPage from "../../features/checkout/CheckoutPage";
 import { useAppDispatch } from "../store/configureStore";
 import { setBasket } from "../../features/basket/basketSlice";
+import Login from "../../features/account/Login";
+import Register from "../../features/account/Register";
+import { fetchCurrentUser } from "../../features/account/accountSlice";
 
 function App() {
 
@@ -28,6 +31,8 @@ function App() {
 
   useEffect(() => {
     const buyerId = getCookie('buyerId');
+    dispatch(fetchCurrentUser());
+
     if (buyerId) {
       agent.Basket.get()
         .then(basket => dispatch(setBasket(basket)))
@@ -71,6 +76,8 @@ function App() {
           <Route path='/server-error' component={ServerError} />
           <Route path='/basket' component={BasketPage} />
           <Route path='/checkout' component={CheckoutPage} />
+          <Route path='/login' component={Login} />
+          <Route path='/register' component={Register} />
           <Route component={NotFound}/>
         </Switch>
         
