@@ -19,8 +19,10 @@ export const signInUser = createAsyncThunk<User, FieldValues>(
         try {
             const user = await agent.Account.login(data);
             localStorage.setItem('user', JSON.stringify(user));
+            history.push('/catalog')
             return user;
         } catch (error: any) {
+            // history.push('/login')
             return thunkAPI.rejectWithValue({error: error.data})
         }
     }
@@ -51,6 +53,7 @@ export const accountSlice = createSlice({
         signOut: (state) => {
             state.user = null;
             localStorage.removeItem('user');
+            toast.success('Successfully logged out');
             history.push('/');
         },
         setUser: (state, action) => {
@@ -64,7 +67,11 @@ export const accountSlice = createSlice({
             toast.error('Session expired - please login again');
             history.push('/');
         })
-        builder.addMatcher(isAnyOf(signInUser.fulfilled, fetchCurrentUser.fulfilled), (state, action) => {
+        builder.addCase(signInUser.fulfilled, (state, action) => {
+            toast.success('Successfully logged in');
+            state.user = action.payload;
+        })
+        builder.addMatcher(isAnyOf(fetchCurrentUser.fulfilled), (state, action) => {
             state.user = action.payload;
         })
         builder.addMatcher(isAnyOf(signInUser.rejected), (state, action) => {
